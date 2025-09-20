@@ -8,6 +8,10 @@ import hydra
 from omegaconf import DictConfig
 from hydra.utils import get_original_cwd
 import requests
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
+logger = logging.getLogger()
 
 _steps = [
     "download",

@@ -42,18 +42,32 @@ def go(config: DictConfig):
         if "download" in active_steps:
             with wandb.init(job_type="download_data") as run:
                 artifact = wandb.Artifact(
-                    name=config["etl"]["sample"],  # This is "sample.csv" from your config
+                    name=config["etl"]["sample"],
                     type="raw_data",
-                    description="Raw data from local file"
+                    description="Raw data as downloaded from the source"
                 )
+
+                # Base URL for the raw data files
+                base_url = "https://github.com/AsiagoRanch/Project-Build-an-ML-Pipeline-Starter/tree/1.0.0/components/get_data/data/"
+                sample_file = config["etl"]["sample"]
                 
-                # Get the full path to the local file
-                local_file_path = os.path.join(original_cwd, "data", config["etl"]["sample"])
+                # Construct the full URL and download the file
+                url = f"{base_url}{sample_file}"
+
+                import requests
                 
-                # Add the local file to the artifact and log it
-                artifact.add_file(local_file_path)
+                logger.info(f"Downloading {sample_file} from {url}")
+                content = requests.get(url).content
+                
+                # Write the content to a file in the temporary directory
+                with open(os.path.join(tmp_dir, sample_file), "wb") as fp:
+                    fp.write(content)
+
+                # Add the file to the artifact and log it
+                artifact.add_file(os.path.join(tmp_dir, sample_file))
                 run.log_artifact(artifact)
                 artifact.wait()
+            
 
         if "basic_cleaning" in active_steps:
             subprocess.run(
